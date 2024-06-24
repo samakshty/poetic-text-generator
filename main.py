@@ -89,7 +89,7 @@ model.fit(x, y, batch_size=256, epochs=4)
 # batch size = how many examples we are gonna put in the network at once. 
 # epoch = how many times our network will see the same data over and ober again 
 
-model.save('textgenerator.model')
+model.save('textgenerator.keras')
 
 #Run File and model will start training.
 
