@@ -42,7 +42,7 @@ STEP_SIZE = 3 #Defining step value size for next sentence.
 sentences = [] #features 
 next_char = [] 
 
-# YOU WILL NEED TO UNCOMMENT LINES 51-94 TO MAKE & TRAIN THE MODEL AND LATER ON COMMENT IT AGAIN WHEN WE LOAD IT .
+# YOU WILL HAVE TO COMMENT OUT LINES 51-94 AFTER RUNNING THIS FILE ONCE, CUZ THE MODEL DOESN'T NEED TO BE TRAINED AGAIN.
     
     # Iterating the entire text to gather the sentences and their next characters. 
     # Training data for our neural network in textual form. (to be converted in numberical form later)
@@ -93,7 +93,10 @@ model.fit(x, y, batch_size=256, epochs=4)
 
 model.save('textgenerator.keras')
 
-# AFTER SAVING THE MODEL, COMMENT OUT LINES 51-94
+# AFTER SAVING THE MODEL ONCE, COMMENT OUT LINES 51-94
+
+# Loading the model
+model = tf.keras.models.load_model('textgenerator.keras')
 
 # Helper Function:
     
@@ -113,7 +116,7 @@ def sample(preds, temperature=1.0):
 
 # Generating Text:
 def generate_text(length, temperature):
-    start_index = random.randint(0, len(text) - SEQ_LENGTH - 1) # somewhere in the text we'll pick an entry point and take the first 40 character.
+    start_index = random.randint(0, len(text) - SEQ_LENGTH - 1) # somewhere in the text we'll pick an entry point and take the first 40 characters.
     generated = ''
     sentence = text[start_index: start_index + SEQ_LENGTH]  
     for i in range(length):
@@ -127,19 +130,19 @@ def generate_text(length, temperature):
 
         generated += next_character  # adding the predicted char into the gen text so that we can use it as next input.
         sentence = sentence[1:] + next_character # left shifting the sentence and adding the new char in the end.
-    return generated #finally returning the genrated text
+    return generated #finally returning the generated text
 
-print('---------0.2--------')
+print('--------0.2-temp-------')
 print(generate_text(300, 0.2))
 
-print('---------0.4--------')
+print('--------0.4-temp-------')
 print(generate_text(300, 0.4))
 
-print('---------0.6--------')
+print('--------0.6-temp-------')
 print(generate_text(300, 0.6))
 
-print('---------0.8--------')
+print('--------0.8-temp-------')
 print(generate_text(300, 0.8))
 
-print('---------1.0--------')
+print('--------1.0-temp-------')
 print(generate_text(300, 1.0))
