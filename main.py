@@ -1,7 +1,7 @@
 import certifi
 import os
 
-# Setting the environment variable for SSL certificate file to certifi's CA bundle path. 
+# Set the environment variable for SSL certificate file to certifi's CA bundle path
 os.environ['SSL_CERT_FILE'] = certifi.where()
 # --------------------MAIN CODE-------------------- #
 
@@ -35,20 +35,19 @@ index_to_char = dict((i,c) for i,c in enumerate(characters))
 SEQ_LENGTH = 40 #Defining sequence length and 
 STEP_SIZE = 3 #Defining step value size for next sentence.
 
-    ''' 
-    if sentence is: "Hello World, I am a python user" 
-    it will scan the first <SEQ_LENGTH> (let's say 6) which is "HELL0 "...
-    and predict the next <STEP_SIZE> (let's say = 3) characters: ..."Wor"...
-    '''
+    # if sentence is: "Hello World, I am a python user" 
+    # it will scan the first <SEQ_LENGTH> (let's say 6) which is "HELL0 "...
+    # and predict the next <STEP_SIZE> (let's say = 3) characters: ..."Wor"...
+
 sentences = [] #features 
 next_char = [] 
 
-# YOU WILL NEED TO UNCOMMENT LINES 52-95 TO MAKE & TRAIN THE MODEL AND LATER ON COMMENT IT AGAIN WHEN WE LOAD IT.
-    '''
-    Iterating the entire text to gather the sentences and their next characters. 
-    Training data for our neural network in textual form. (to be converted in numberical form later)
-    this loop runs from beginning of text up until SEQ_LENGTH with a STEP_SIZE
-    '''
+# YOU WILL NEED TO UNCOMMENT LINES 51-94 TO MAKE & TRAIN THE MODEL AND LATER ON COMMENT IT AGAIN WHEN WE LOAD IT .
+    
+    # Iterating the entire text to gather the sentences and their next characters. 
+    # Training data for our neural network in textual form. (to be converted in numberical form later)
+    # this loop runs from beginning of text up until SEQ_LENGTH with a STEP_SIZE
+    
 for i in range(0, len(text) - SEQ_LENGTH, STEP_SIZE): 
     sentences.append(text[i: i + SEQ_LENGTH]) #if SEQ_LENGTH is 5, so sentence is from 0-4 index and
     next_char.append(text[i + SEQ_LENGTH])   # next character is the one at 5th index.
@@ -56,12 +55,12 @@ for i in range(0, len(text) - SEQ_LENGTH, STEP_SIZE):
 # Creating 2 numpy arrays with zeroes
 x = np.zeros((len(sentences), SEQ_LENGTH, len(characters)), dtype=np.bool_)
 y = np.zeros((len(sentences), len(characters)), dtype=np.bool_)
-    '''
-    Whenever in a specific sentence, at a specific position, a speciifc char occurs, we will set it to True/1. all other values remain 0.
-    dimensions: 1. for all the possible sentences that we have. 
-                2. for all the individual postions within these sentences
-                3. for all the possible characters that we can have   
-    '''
+
+    # Whenever in a specific sentence, at a specific position, a speciifc char occurs, we will set it to True/1. all other values remain 0.
+    # dimensions: 1. for all the possible sentences that we have. 
+    #             2. for all the individual postions within these sentences
+    #             3. for all the possible characters that we can have   
+    
 for i, sentz in enumerate(sentences): #taking all sentences and assigning them an index
     for t, char in enumerate(sentz): #taking each sentence and assingning index to each character in each sentence
         x[i, t, char_to_index[char]] = 1
@@ -88,22 +87,22 @@ model.compile(loss='categorical_crossentropy', optimizer=RMSprop(learning_rate=0
     # RMSprop is a popular optimizer for RNNs. It adapts the learning rate for each
 
 model.fit(x, y, batch_size=256, epochs=4) 
-    ''' we fitted the model on training data (x,y) , 
-    batch size = how many examples we are gonna put in the network at once. 
-    epoch = how many times our network will see the same data over and ober again '''
+    #  we fitted the model on training data (x,y) , 
+    # batch size = how many examples we are gonna put in the network at once. 
+    # epoch = how many times our network will see the same data over and ober again 
 
 model.save('textgenerator.keras')
 
-# AFTER SAVING THE MODEL, COMMENT OUT LINES 52-95
+# AFTER SAVING THE MODEL, COMMENT OUT LINES 51-94
 
 # Helper Function:
-    '''
-    The sample function chooses the next character based on the softmax probabilities of each character.
-    It uses a 'temperature' parameter to control the randomness of the selection:
-    - High temperature -> more random, creative, and experimental choices.
-    - Low temperature -> safer, more conservative choices.
-    This function is utilized in the generate_text function, which generates text of a specified length using the given temperature.
-    '''
+    
+    # The sample function chooses the next character based on the softmax probabilities of each character.
+    # It uses a 'temperature' parameter to control the randomness of the selection:
+    # - High temperature -> more random, creative, and experimental choices.
+    # - Low temperature -> safer, more conservative choices.
+    # This function is utilized in the generate_text function, which generates text of a specified length using the given temperature.
+    
 def sample(preds, temperature=1.0):
     preds = np.asarray(preds).astype('float64')
     preds = np.log(preds) / temperature
@@ -111,3 +110,36 @@ def sample(preds, temperature=1.0):
     preds = exp_preds / np.sum(exp_preds)
     probas = np.random.multinomial(1, preds, 1)
     return np.argmax(probas)
+
+# Generating Text:
+def generate_text(length, temperature):
+    start_index = random.randint(0, len(text) - SEQ_LENGTH - 1) # somewhere in the text we'll pick an entry point and take the first 40 character.
+    generated = ''
+    sentence = text[start_index: start_index + SEQ_LENGTH]  
+    for i in range(length):
+        x_predictions = np.zeros((1, SEQ_LENGTH, len(characters)))
+        for t, char in enumerate(sentence):
+            x_predictions[0, t, char_to_index[char]] = 1 #like before, we put 1 wherever a char occurs
+
+        predictions = model.predict(x_predictions, verbose=0)[0] # we get the softmax predictions
+        next_index = sample(predictions, temperature) #feeding those in sample func with given temperature
+        next_character = index_to_char[next_index] # converting it into next character
+
+        generated += next_character  # adding the predicted char into the gen text so that we can use it as next input.
+        sentence = sentence[1:] + next_character # left shifting the sentence and adding the new char in the end.
+    return generated #finally returning the genrated text
+
+print('---------0.2--------')
+print(generate_text(300, 0.2))
+
+print('---------0.4--------')
+print(generate_text(300, 0.4))
+
+print('---------0.6--------')
+print(generate_text(300, 0.6))
+
+print('---------0.8--------')
+print(generate_text(300, 0.8))
+
+print('---------1.0--------')
+print(generate_text(300, 1.0))
